@@ -1,134 +1,59 @@
-import { Application } from "https://cdn.skypack.dev/@splinetool/runtime@0.9.416";
+var menuToggle = document.getElementById("menuToggle");
 
-const canvas = document.getElementById("canvas3d");
-const app = new Application(canvas);
-app
-  .load("https://prod.spline.design/ZZOWNi4tS7p8xxOs/scene.splinecode")
-  .then(() => {
-    const keyboard = app.findObjectByName("keyboard");
+var menuBar = gsap.timeline();
 
-    gsap.set(keyboard.scale, { x: 1, y: 1, z: 1 });
-    gsap.set(keyboard.position, { x: 110, y: 50 });
+menuBar.to('.bar-1', 0.5,{
+	attr:{d: "M8,2 L2,8"},
+	x:1,
+	ease: Power2.easeInOut
+}, 'start')
 
-    let rotateKeyboard = gsap.to(keyboard.rotation, {
-      y: Math.PI * 2 + keyboard.rotation.y,
-      x: 0,
-      z: 0,
-      duration: 10,
-      repeat: -1,
-      ease: "none"
-    });
+menuBar.to('.bar-2', 0.5,{
+	autoAlpha: 0
+}, 'start')
 
-    let rotationProgress = 0;
-    let interval;
+menuBar.to('.bar-3', 0.5,{
+	attr:{d: "M8,8 L2,2"},
+	x:1,
+	ease: Power2.easeInOut
+}, 'start')
 
-    gsap
-      .timeline({
-        scrollTrigger: {
-          trigger: "#part1",
-          start: "top 60%",
-          end: "bottom bottom",
-          scrub: true,
-          onEnter: () => {
-            rotationProgress = rotateKeyboard.progress();
-
-            interval = setInterval(() => {
-              app.emitEvent("keyDown", "keyboard");
-            }, 1500);
-
-            rotateKeyboard.pause();
-            gsap.to(keyboard.rotation, {
-              y: Math.PI / 12,
-              duration: 1
-            });
-          },
-          onLeaveBack: () => {
-            const newProgress = keyboard.rotation.y / (Math.PI * 2);
-            rotateKeyboard.progress(newProgress).resume();
-            clearInterval(interval);
-          }
-        }
-      })
-      .to(keyboard.rotation, { x: -Math.PI / 14, z: Math.PI / 36 }, 0)
-      .to(keyboard.position, { x: -500, y: -200 }, 0)
-      .to(keyboard.scale, { x: 3, y: 3, z: 3 }, 0);
-
-    gsap
-      .timeline({
-        onComplete: () => {
-          clearInterval(interval);
-          app.emitEvent("mouseDown", "keyboard");
-        },
-        scrollTrigger: {
-          trigger: "#part2",
-          start: "top bottom",
-          end: "center bottom",
-          scrub: true
-        }
-      })
-      .to(keyboard.rotation, { x: Math.PI / 36, y: -Math.PI / 10 }, 0)
-      .to(keyboard.position, { x: 150, y: 50 }, 0)
-      .to(keyboard.scale, { x: 0.8, y: 0.8, z: 0.8 }, 0);
-
-    gsap
-      .timeline({
-        scrollTrigger: {
-          trigger: "#part3",
-          start: "top bottom",
-          end: "bottom bottom",
-          scrub: true
-        }
-      })
-      .to(keyboard.position, { x: 0, y: 0 }, 0);
-  });
+menuBar.reverse();
 
 
+var tl = gsap.timeline({ paused: true});
 
-// background progress bar
+tl.to('.fullpage-menu', {
+	duration:0,
+	display: "block",
+	ease: 'Expo.easeInOut',
+});
 
-function animateBar(triggerElement, onEnterWidth, onLeaveBackWidth) {
-  gsap.to(".bar", {
-    scrollTrigger: {
-      trigger: triggerElement,
-      start: "top center",
-      end: "bottom bottom",
-      scrub: true,
-      onEnter: () => {
-        gsap.to(".bar", {
-          width: onEnterWidth,
-          duration: 0.2,
-          ease: "none"
-        });
-      },
-      onLeaveBack: () => {
-        gsap.to(".bar", {
-          width: onLeaveBackWidth,
-          duration: 0.2,
-          ease: "none"
-        });
-      }
-    }
-  });
-}
+tl.from('.menu-bg span', {
+	duration:1,
+	x:"100%",
+	stagger: 0.1,
+	ease: 'Expo.easeInOut'
+});
 
-animateBar("#part1", "35%", "0%");
-animateBar("#part2", "65%", "35%");
-animateBar("#part3", "100%", "65%");
+tl.from('.main-menu li a', {
+	duration:1.5,
+	y:"100%",
+	stagger: 0.2,
+	ease: 'Expo.easeInOut'
+} , "-=0.5");
 
+tl.from('.social-links li', {
+	duration:1,
+	y:"-100%",
+	opacity:0,
+	stagger: 0.1,
+	ease: 'Expo.easeInOut'
+} , "-=0.5");
 
+tl.reverse();
 
-// keyboard text effect
-const keys = document.querySelectorAll(".key");
-
-function pressRandomKey() {
-  const randomKey = keys[Math.floor(Math.random() * keys.length)];
-
-  randomKey.style.animation = "pressDown 0.2s ease-in-out";
-
-  randomKey.onanimationend = () => {
-    randomKey.style.animation = "";
-    setTimeout(pressRandomKey, 100 + Math.random() * 300);
-  };
-}
-
-pressRandomKey();
+menuToggle.addEventListener('click', function(){
+	menuBar.reversed(!menuBar.reversed());
+	tl.reversed(!tl.reversed());
+});
